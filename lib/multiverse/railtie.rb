@@ -32,10 +32,15 @@ module Multiverse
             Rails.application.paths["db/seeds.rb"] = ["#{Multiverse.db_dir}/seeds.rb"]
 
             if ActiveRecord::Tasks::DatabaseTasks.database_configuration
-              new_config = {}
-              Rails.application.config.database_configuration.each do |env, config|
-                if env.start_with?("#{Multiverse.db}_")
-                  new_config[env.sub("#{Multiverse.db}_", "")] = config
+              if File.exists?('config/multiverse.yml')
+                yml = File.read('config/multiverse.yml')
+                new_config = YAML.load(ERB.new(yml).result)
+              else
+                new_config = {}
+                Rails.application.config.database_configuration.each do |env, config|
+                  if env.start_with?("#{Multiverse.db}_")
+                    new_config[env.sub("#{Multiverse.db}_", "")] = config
+                  end
                 end
               end
               ActiveRecord::Tasks::DatabaseTasks.database_configuration.merge!(new_config)
